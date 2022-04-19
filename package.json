@@ -8,6 +8,8 @@
   "dependencies": {
     "@babel/core": "^7.13.1",
     "@babel/preset-env": "^7.13.5",
+    "@zappar/zappar": "^0.3.17",
+    "@zappar/zappar-threejs": "^0.3.40",
     "babel-loader": "^8.2.2",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^7.0.0",
