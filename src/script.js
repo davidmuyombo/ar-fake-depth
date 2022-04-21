@@ -2,6 +2,9 @@ import './style.css'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as ZapparThree from "@zappar/zappar-threejs";
+import waterVertexShader from './shaders/water/vertex.glsl'
+import waterFragmentShader from './shaders/water/fragment.glsl'
+
 
 /**
  * Base
@@ -100,6 +103,37 @@ splashMesh.renderOrder = 5
 splashMesh.visible = false;
 stLaurentImageAnchorGroup.add(splashMesh)
 
+// Material
+const waterMaterial = new THREE.ShaderMaterial({
+    vertexShader: waterVertexShader,
+    fragmentShader: waterFragmentShader,
+    uniforms:
+    {
+        uTime:{value:0},
+
+        uBigWavesElevation:{value:0.2},
+        uBigWavesFrequency:{value: new THREE.Vector2(4,1.5)},
+        uBigWavesSpeed:{value:0.75},
+
+        uDepthColor: {value: new THREE.Color(debugObject.depthColor) },
+        uSurfaceColor: {value: new THREE.Color(debugObject.surfaceColor) },
+        uColorOffset:{value: 0.178}, 
+        uColorMultiplier:{value: 4.573}, 
+
+        uSmallWavesElevation:{value: 0.15},
+        uSmallWavesFrequency:{value: 3},
+        uSmallWavesSpeed:{value: 0.2},
+        uSmallIterations:{value: 4.0}
+    }
+})
+
+// Mesh
+const water = new THREE.Mesh(waterGeometry, waterMaterial)
+water.rotation.x = - Math.PI * 0.5
+scene.add(water)
+
+
+
 /**
  * Model
  */
@@ -116,7 +150,7 @@ gltfLoader.load(
 
         meshGltf.traverse(function(child) {
             if (child.name === "occlude_object") {
-                 child.material.colorWrite = false; //apply same material to all meshes
+                child.material.colorWrite = false; //apply same material to all meshes
                 //  child.renderOrder = 3; //apply same material to all meshes
             }else if (child.name === "whale"){
                 // child.material.transparent = true;
