@@ -10,6 +10,9 @@ uniform float uSmallIterations;
 
 varying float vElevation;
 
+// attribute vec2 uv;
+varying vec2 vUv;
+
 // Classic Perlin 3D Noise 
 // by Stefan Gustavson
 //
@@ -110,8 +113,7 @@ void main()
     {
         elevation -= abs(cnoise(vec3(modelPosition.xz * uSmallWavesFrequency * i, uTime * uSmallWavesSpeed)) * uSmallWavesElevation/i);
     }
-    
-    
+      
 
     modelPosition.y += elevation;
 
@@ -121,4 +123,6 @@ void main()
     gl_Position = projectedPosition;
 
     vElevation = elevation;
+
+    vUv = uv;
 }
