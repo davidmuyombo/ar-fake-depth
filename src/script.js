@@ -47,13 +47,25 @@ let frameAnchorGroup = new ZapparThree.ImageAnchorGroup(camera, stLaurentImageTr
 scene.add(frameAnchorGroup);
 
 // Load Textures
+const textures = []
+
 const cielTex = textureLoader.load('./textures/ciel-min.png')
 const montagneTex = textureLoader.load('./textures/montagne-min.png')
-const montagneBTex = textureLoader.load('./textures/montagne-b-min.png')
+const montagneBTex = textureLoader.load('./textures/montagne-d-min.png')
 const montagneCTex = textureLoader.load('./textures/montagne-c-min.png')
 const sticker = textureLoader.load('./textures/st-lawrence-river-sticker.png')
-const splashTex = textureLoader.load('./textures/whales-splash-min.png')
 const seaMap = textureLoader.load('./textures/mer-min.png')
+
+textures.push(cielTex);
+textures.push(montagneTex);
+textures.push(montagneBTex);
+textures.push(montagneCTex);
+textures.push(sticker);
+textures.push(seaMap);
+
+textures.forEach(element => {
+    element.encoding = THREE.sRGBEncoding;
+});
 
 
 const cielGeo = new THREE.PlaneGeometry(20,20,1,1);
@@ -63,16 +75,12 @@ const cielBMesh = cielMesh.clone();
 cielMesh.position.set(0,-0.7,-9);
 cielMesh.renderOrder = 2;
 cielMesh.visible = false;
-stLaurentImageAnchorGroup.add(cielMesh);
-// cielBMesh.rotation.set(0,Math.PI*0.5,0);
-// cielBMesh.position.set(-10,0,0)
-// cielBMesh.visible = false
-// stLaurentImageAnchorGroup.add(cielBMesh);
 
 const montagneGeo = new THREE.PlaneGeometry(19,10.8,1,1);
 const montagneMat = new THREE.MeshBasicMaterial({map:montagneTex,transparent:true}); 
 const montagneMesh = new THREE.Mesh(montagneGeo,montagneMat);
-montagneMesh.position.set(0.9,0.3,-6);
+montagneMesh.scale.set(0.8,0.5,0.5);
+montagneMesh.position.set(3.2,0,-6.2);
 montagneMesh.visible = false;
 montagneMesh.renderOrder = 0;
 stLaurentImageAnchorGroup.add(montagneMesh);
@@ -80,17 +88,18 @@ stLaurentImageAnchorGroup.add(montagneMesh);
 const montagneBGeo = new THREE.PlaneGeometry(19,10.8,1,1);
 const montagneBMat = new THREE.MeshBasicMaterial({map:montagneBTex,transparent:true}); 
 const montagneBMesh = new THREE.Mesh(montagneBGeo,montagneBMat);
-montagneBMesh.position.set(0,-0.2,-6.5);
+// montagneBMat.side = THREE.DoubleSide;
+montagneBMesh.position.set(-0,-0.3,-6.4);
 montagneBMesh.visible = false;
-montagneBMesh.renderOrder = 0;
+montagneBMesh.renderOrder = -1;
 stLaurentImageAnchorGroup.add(montagneBMesh);
 
 const montagneCGeo = new THREE.PlaneGeometry(19,10.8,1,1);
 const montagneCMat = new THREE.MeshBasicMaterial({map:montagneCTex,transparent:true}); 
 const montagneCMesh = new THREE.Mesh(montagneCGeo,montagneCMat);
-montagneCMesh.position.set(0,-0.3,-7.5);
+montagneCMesh.position.set(0,0.5,-10);
 montagneCMesh.visible = false;
-montagneCMesh.renderOrder = 0;
+montagneCMesh.renderOrder = -1;
 stLaurentImageAnchorGroup.add(montagneCMesh);
 
 const stickerGeo = new THREE.PlaneGeometry(1,1,1,1)
@@ -108,34 +117,35 @@ const waterMaterial = new THREE.ShaderMaterial({
     {
         uTime:{value:0},
 
-        uBigWavesElevation:{value:0.02},
+        uBigWavesElevation:{value:0.05},
         uBigWavesFrequency:{value: new THREE.Vector2(4,1.5)},
-        uBigWavesSpeed:{value:1.3},
+        uBigWavesSpeed:{value:0.8},
 
         uTexture:{value: seaMap },
         uColorOffset:{value: 0.178}, 
         uColorMultiplier:{value: 4.573}, 
 
-        uSmallWavesElevation:{value: 4},
+        uSmallWavesElevation:{value: 10},
         uSmallWavesFrequency:{value: 0.1},
         uSmallWavesSpeed:{value: 0.01},
         uSmallIterations:{value: 0.5}
     }
 })
-
+const secondWaterMat = waterMaterial.clone()
 
 /**
  * Model
  */
-let meshGltf, waterMat, boatMesh, whale;
+let meshGltf, waterMat, secondWater, boatMesh, whale, hdr;
+const waterMaterials = []
 gltfLoader.load(
     './models/boat_and_whale.gltf',
     (gltf) =>
     {
         // console.log(gltf.scene)
         meshGltf = gltf.scene;
-        meshGltf.scale.set(3.7, 3.7, 3.7);
-        meshGltf.position.set(0,0,0);
+        meshGltf.scale.set(3.65, 3.65, 3.65);
+        meshGltf.position.set(0,0,-0.6);
         meshGltf.visible = false;
 
         meshGltf.traverse(function(child) {
@@ -143,19 +153,33 @@ gltfLoader.load(
                 child.material.colorWrite = false; //apply same material to all meshes
                 //  child.renderOrder = 3; //apply same material to all meshes
             }else if (child.name === "sea"){
-                console.log(child.material)
-                child.material.emissiveMap.wrapS = THREE.MirroredRepeatWrapping;
-                child.material.emissiveMap.wrapT = THREE.MirroredRepeatWrapping;
-                waterMat = child.material.emissiveMap;
-                child.material = waterMaterial;
+                console.log(child)
+                child.children[0].material.emissiveMap.wrapS = THREE.MirroredRepeatWrapping;
+                child.children[0].material.emissiveMap.wrapT = THREE.MirroredRepeatWrapping;
+                waterMat = child.children[0].material.emissiveMap;
+                child.children[0].material = waterMaterial;
                 waterMaterial.uniforms.uTexture.value = waterMat;
-                waterMat.repeat = THREE.MirroredRepeatWrapping;
-                child.renderOrder = 1
+                child.children[0].renderOrder = 1
+                
+                child.children[1].material.emissiveMap.wrapS = THREE.MirroredRepeatWrapping;
+                child.children[1].material.emissiveMap.wrapT = THREE.MirroredRepeatWrapping;
+                secondWater = child.children[1].material.emissiveMap;
+                child.children[1].material = secondWaterMat;
+                secondWaterMat.uniforms.uTexture.value = secondWater;
+                child.children[1].renderOrder = 1;
+
             }else if(child.name === "boat"){
                     boatMesh = child;
+                    boatMesh.renderOrder = 3
                     // child.renderOrder = 0;
             }else if(child.name === "whaleGroup"){
                 whale = child;
+                // whale.mesh.renderOrder = 3;
+            }else if (child.name === "hdr"){
+                hdr = child;
+                hdr.material.emissiveMap.wrapS = THREE.MirroredRepeatWrapping;
+                hdr.material.emissiveMap.wrapT = THREE.MirroredRepeatWrapping;
+                // hdr.renderOrder = -1
             }
         });
         stLaurentImageAnchorGroup.add(meshGltf);    
@@ -241,6 +265,7 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
 
     waterMaterial.uniforms.uTime.value = elapsedTime;
+    secondWaterMat.uniforms.uTime.value = elapsedTime;
 
     if(boatMesh){
         boatMesh.position.y -= Math.sin(elapsedTime*1.3)*0.1
